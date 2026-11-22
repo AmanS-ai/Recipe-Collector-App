@@ -17,6 +17,7 @@ Recipe Collector is a clean, responsive recipe library for keeping the dishes yo
 - Delete recipes with a confirmation prompt.
 - View full ingredients and cooking instructions.
 - Search by recipe name and filter by category.
+- Focus recipe search with `Ctrl+K` (Windows/Linux) or `⌘K` (macOS).
 - Browser LocalStorage persistence across reloads and browser restarts.
 - Responsive layouts, empty states, keyboard-dismissable dialogs, and image fallbacks.
 

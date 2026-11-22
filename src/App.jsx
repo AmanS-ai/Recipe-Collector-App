@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 
 const STORAGE_KEY = "recipe-collector-recipes";
 const CATEGORIES = ["Breakfast", "Lunch", "Dinner", "Dessert", "Snacks"];
@@ -224,6 +224,7 @@ function RecipeDetails({ recipe, onClose, onEdit }) {
 function App() {
   const [recipes, setRecipes] = useState(loadRecipes);
   const [search, setSearch] = useState("");
+  const searchInputRef = useRef(null);
   const [category, setCategory] = useState("All recipes");
   const [formRecipe, setFormRecipe] = useState(null);
   const [formOpen, setFormOpen] = useState(false);
@@ -245,6 +246,10 @@ function App() {
       if (event.key === "Escape") {
         setFormOpen(false);
         setViewRecipe(null);
+      }
+      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") {
+        event.preventDefault();
+        searchInputRef.current?.focus();
       }
     }
     window.addEventListener("keydown", closeOnEscape);
@@ -327,7 +332,7 @@ function App() {
                 </button>
               ))}
             </div>
-            <label className="search-box"><Icon name="search" size={18} /><input type="search" value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Find a recipe…" aria-label="Search recipes by name" /><kbd>⌘ K</kbd></label>
+            <label className="search-box"><Icon name="search" size={18} /><input ref={searchInputRef} type="search" value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Find a recipe…" aria-label="Search recipes by name" /><kbd>⌘ K</kbd></label>
           </div>
 
           {storageError && <p className="storage-warning" role="status">Your recipes are available for this session, but could not be saved in this browser.</p>}
