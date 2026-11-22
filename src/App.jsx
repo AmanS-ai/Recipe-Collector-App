@@ -309,7 +309,7 @@ function App() {
         <section className="welcome-section">
           <div className="welcome-copy">
             <span className="eyebrow"><Icon name="spark" size={14} /> A LITTLE INSPIRATION FOR LATER</span>
-            <h1>Good food is<br /><em>worth keeping.</em></h1>
+            <h1>Recipes from our community.<br /><em>Gathered here.</em></h1>
             <p>A home for the recipes you love, the ones you’ll make again and again.</p>
             <button type="button" className="button button-primary welcome-button" onClick={openNewRecipe}>Add a recipe <Icon name="arrow" size={16} /></button>
           </div>
