@@ -59,7 +59,7 @@ function loadRecipes() {
   }
 }
 
-function Icon({ name, size = 18 }) {
+function Icon({ name, size = 18, filled = false }) {
   const paths = {
     book: <><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v17H6.5A2.5 2.5 0 0 1 4 17.5z" /><path d="M4 17.5A2.5 2.5 0 0 1 6.5 15H20M8 7h8M8 10h6" /></>,
     plus: <><path d="M12 5v14M5 12h14" /></>,
@@ -71,9 +71,10 @@ function Icon({ name, size = 18 }) {
     trash: <><path d="M4 7h16M10 11v6M14 11v6M5 7l1 14h12l1-14M9 7V4h6v3" /></>,
     arrow: <><path d="M5 12h14M13 6l6 6-6 6" /></>,
     spark: <><path d="m12 3 1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8zM19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8z" /></>,
+    heart: <path d="M20.8 8.8c0 4.2-8.8 10-8.8 10s-8.8-5.8-8.8-10a4.8 4.8 0 0 1 8.8-2.6 4.8 4.8 0 0 1 8.8 2.6Z" />,
   };
   return (
-    <svg aria-hidden="true" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+    <svg aria-hidden="true" width={size} height={size} viewBox="0 0 24 24" fill={filled ? "currentColor" : "none"} stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
       {paths[name]}
     </svg>
   );
@@ -87,7 +88,7 @@ function RecipeImage({ recipe, className = "" }) {
   return <img className={className} src={recipe.image} alt={recipe.name} onError={() => setFailed(true)} />;
 }
 
-function RecipeCard({ recipe, onView, onEdit, onDelete }) {
+function RecipeCard({ recipe, onView, onEdit, onDelete, onToggleFavorite }) {
   return (
     <article className="recipe-card">
       <button className="card-image-button" type="button" onClick={() => onView(recipe)} aria-label={`View ${recipe.name}`}>
@@ -102,6 +103,7 @@ function RecipeCard({ recipe, onView, onEdit, onDelete }) {
         <div className="card-footer">
           <button type="button" className="text-link" onClick={() => onView(recipe)}>View recipe <Icon name="arrow" size={15} /></button>
           <div className="card-actions">
+            <button type="button" className={`icon-button favorite-action${recipe.isFavorite ? " is-favorite" : ""}`} aria-label={recipe.isFavorite ? `Remove ${recipe.name} from favorites` : `Add ${recipe.name} to favorites`} aria-pressed={Boolean(recipe.isFavorite)} onClick={() => onToggleFavorite(recipe)}><Icon name="heart" size={16} filled={Boolean(recipe.isFavorite)} /></button>
             <button type="button" className="icon-button" aria-label={`Edit ${recipe.name}`} onClick={() => onEdit(recipe)}><Icon name="edit" size={16} /></button>
             <button type="button" className="icon-button delete-action" aria-label={`Delete ${recipe.name}`} onClick={() => onDelete(recipe)}><Icon name="trash" size={16} /></button>
           </div>
@@ -264,6 +266,7 @@ function App() {
     counts[item] = recipes.filter((recipe) => recipe.category === item).length;
     return counts;
   }, {});
+  const favoriteRecipes = recipes.filter((recipe) => recipe.isFavorite);
 
   function openNewRecipe() {
     setFormRecipe(null);
@@ -291,6 +294,20 @@ function App() {
     }
   }
 
+  function toggleFavorite(recipe) {
+    setRecipes((current) => current.map((item) => item.id === recipe.id
+      ? { ...item, isFavorite: !item.isFavorite }
+      : item));
+  }
+
+  function renderRecipeGrid(items) {
+    return (
+      <div className="recipe-grid">
+        {items.map((recipe) => <RecipeCard key={recipe.id} recipe={recipe} onView={setViewRecipe} onEdit={openEditRecipe} onDelete={deleteRecipe} onToggleFavorite={toggleFavorite} />)}
+      </div>
+    );
+  }
+
   return (
     <div className="app-shell">
       <header className="topbar">
@@ -300,6 +317,7 @@ function App() {
         </a>
         <nav className="top-nav" aria-label="Main navigation">
           <a className="nav-link active" href="#home">My collection</a>
+          <a className="nav-link" href="#favorites">Favorites</a>
           <a className="nav-link" href="#recipes">Browse recipes</a>
         </nav>
         <button className="button button-primary top-add" type="button" onClick={openNewRecipe}><Icon name="plus" size={17} /> Add recipe</button>
@@ -317,6 +335,16 @@ function App() {
             <div className="art-note"><span className="note-icon">✳</span><span>Made with love<small>and a little extra butter</small></span></div>
           </div>
           <div className="collection-count"><span className="count-number">{recipes.length}</span><span>recipes<br />collected</span><span className="count-divider" /><Icon name="book" size={22} /></div>
+        </section>
+
+        <section className="favorites-section" id="favorites">
+          <div className="section-heading">
+            <div><span className="eyebrow">THE ONES YOU LOVE</span><h2>Saved favorites<span className="period">.</span></h2></div>
+            <span className="recipe-count">{favoriteRecipes.length} saved</span>
+          </div>
+          {favoriteRecipes.length > 0
+            ? renderRecipeGrid(favoriteRecipes)
+            : <p className="favorites-empty">Tap the heart on a recipe card and it’ll be waiting for you here.</p>}
         </section>
 
         <section className="collection-section" id="recipes">
@@ -338,9 +366,7 @@ function App() {
           {storageError && <p className="storage-warning" role="status">Your recipes are available for this session, but could not be saved in this browser.</p>}
 
           {filteredRecipes.length > 0 ? (
-            <div className="recipe-grid">
-              {filteredRecipes.map((recipe) => <RecipeCard key={recipe.id} recipe={recipe} onView={setViewRecipe} onEdit={openEditRecipe} onDelete={deleteRecipe} />)}
-            </div>
+            renderRecipeGrid(filteredRecipes)
           ) : (
             <div className="empty-state">
               <div className="empty-icon"><Icon name={search || category !== "All recipes" ? "search" : "book"} size={28} /></div>
